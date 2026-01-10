@@ -1,0 +1,42 @@
+{
+  "name": "mimicord-app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "pnpm exec infisical run -- pnpm exec turbo dev",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "biome format --write .",
+    "prepare": "husky",
+    "db:up": "docker compose -f packages/config/docker-compose.yml up -d",
+    "db:push": "pnpm exec infisical run -- pnpm -F @packages/db db:push",
+    "db:generate": "pnpm exec infisical run -- pnpm -F @packages/db db:generate",
+    "db:migrate": "pnpm exec infisical run -- pnpm -F @packages/db db:migrate",
+    "db:down": "docker compose -f packages/config/docker-compose.yml down",
+    "db:restart": "docker compose -f packages/config/docker-compose.yml restart",
+    "db:logs": "docker compose -f packages/config/docker-compose.yml logs -f",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:int": "turbo run test:int",
+    "test:e2e": "pnpm exec infisical run --projectId=082d5863-19f4-49d4-88fc-429990db8d3e --env=staging -- pnpm exec turbo run test:e2e",
+    "test:ci": "turbo run test test:e2e"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
+      "ultracite fix"
+    ]
+  },
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "@commitlint/cli": "^20.3.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "@infisical/cli": "latest",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "turbo": "^2.7.3",
+    "ultracite": "7.0.7",
+    "vitest": "catalog:"
+  }
+}

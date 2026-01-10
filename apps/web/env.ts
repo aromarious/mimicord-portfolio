@@ -1,0 +1,62 @@
+import { createEnv } from "@t3-oss/env-nextjs"
+import { z } from "zod"
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.string().url(),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
+    VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
+    // Upstash Redis (Rate Limiting)
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+    // Better Auth
+    BETTER_AUTH_SECRET: z.string(),
+    BETTER_AUTH_URL: z.string().url(),
+    GITHUB_CLIENT_ID: z.string(),
+    GITHUB_CLIENT_SECRET: z.string(),
+    GITHUB_CLIENT_ID_PREVIEW: z.string().optional(),
+    GITHUB_CLIENT_SECRET_PREVIEW: z.string().optional(),
+    OPENAI_API_KEY: z.string().optional(),
+    LLM_MODEL: z.string(),
+    ANONYMIZATION_ALIASES: z.string().optional(), // JSON string
+    DISABLE_RATE_LIMIT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((val) => val === "true"),
+    // Rate Limit Configuration
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().optional(),
+    RATE_LIMIT_WINDOW: z.string().optional(),
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
+  },
+  client: {},
+  // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+    GITHUB_CLIENT_ID_PREVIEW: process.env.GITHUB_CLIENT_ID_PREVIEW,
+    GITHUB_CLIENT_SECRET_PREVIEW: process.env.GITHUB_CLIENT_SECRET_PREVIEW,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    LLM_MODEL: process.env.LLM_MODEL,
+    ANONYMIZATION_ALIASES: process.env.ANONYMIZATION_ALIASES,
+    DISABLE_RATE_LIMIT: process.env.DISABLE_RATE_LIMIT,
+    RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS,
+    RATE_LIMIT_WINDOW: process.env.RATE_LIMIT_WINDOW,
+    LOG_LEVEL: process.env.LOG_LEVEL,
+  },
+  // For Next.js >= 13.4.4, you only need to destructure client variables:
+  // experimental__runtimeEnv: {
+  //   NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+  // }
+  // Skip validation during build time (Vercel, etc.)
+  // Validation will run at runtime when the server code is executed
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+})
