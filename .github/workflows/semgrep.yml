@@ -1,0 +1,68 @@
+name: Semgrep Security Scan
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+  push:
+    branches: ["main", "develop"]
+  schedule:
+    # 毎週月曜日の午前9時 (UTC) に実行
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # 手動実行を許可
+
+jobs:
+  semgrep:
+    name: Scan
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep scan
+        run: |
+          # 集計用にJSONを出力
+          semgrep scan --config auto --json --output semgrep.json
+        continue-on-error: true
+
+
+      - name: Generate Job Summary
+        run: |
+          echo "### 🛡️ Semgrep Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          
+          # 結果が空でないか確認
+          if [ ! -s semgrep.json ]; then
+            echo "✅ No security issues found." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          # 統計情報の取得
+          ERRORS=$(jq '.results[] | select(.extra.severity == "ERROR")' semgrep.json | jq -s 'length')
+          WARNINGS=$(jq '.results[] | select(.extra.severity == "WARNING")' semgrep.json | jq -s 'length')
+          INFOS=$(jq '.results[] | select(.extra.severity == "INFO")' semgrep.json | jq -s 'length')
+
+          echo "#### Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔴 **Errors**: $ERRORS" >> $GITHUB_STEP_SUMMARY
+          echo "- 🟡 **Warnings**: $WARNINGS" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔵 **Infos**: $INFOS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ERRORS" -gt 0 ] || [ "$WARNINGS" -gt 0 ] || [ "$INFOS" -gt 0 ]; then
+            echo "#### Details" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | File | Line | Message |" >> $GITHUB_STEP_SUMMARY
+            echo "| :--- | :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+            jq -r '.results[] | "| \(.extra.severity) | \(.path) | \(.start.line) | \(.extra.message | gsub("\n"; " ")) |"' semgrep.json >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # エラーがある場合はジョブを失敗させる
+          if [ "$ERRORS" -gt 0 ]; then
+            exit 1
+          fi
+

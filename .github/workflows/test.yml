@@ -1,0 +1,177 @@
+name: Test (PR)
+
+on:
+  pull_request:
+
+# Restrict permissions for security
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.11.0'
+  INFISICAL_PROJECT_ID: '082d5863-19f4-49d4-88fc-429990db8d3e'
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Lint
+        run: pnpm lint
+
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript check
+        run: pnpm typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webapp_test
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Infisical CLI
+        if: github.actor != 'dependabot[bot]'
+        run: |
+          curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+          sudo apt-get update && sudo apt-get install -y infisical
+
+      - name: Run DB Migrations
+        if: github.actor != 'dependabot[bot]'
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
+        run: |
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=postgres psql -h localhost -p 5433 -U postgres -d webapp_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          cd packages/db
+          infisical run --projectId=${{ env.INFISICAL_PROJECT_ID }} --env=staging -- pnpm db:push
+
+      - name: Run Unit Tests
+        run: |
+          cd apps/web
+          pnpm test:unit --coverage --coverage.reporter=text --coverage.reporter=json-summary
+
+      - name: Publish Unit Test Coverage
+        if: always()
+        run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Unit Test Coverage"
+
+      - name: Run Integration Tests
+        if: github.actor != 'dependabot[bot]'
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
+        run: |
+          cd apps/web
+          infisical run --projectId=${{ env.INFISICAL_PROJECT_ID }} --env=staging -- pnpm test:int:coverage --coverage.reporter=text --coverage.reporter=json-summary
+
+      - name: Publish Integration Test Coverage
+        if: github.actor != 'dependabot[bot]' && always()
+        run: node .github/scripts/coverage-summary.js apps/web/coverage/coverage-summary.json "Integration Test Coverage"
+
+      - name: Upload Unit Test Coverage
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: unit-test-coverage
+          path: apps/web/coverage/
+          retention-days: 30
+
+      - name: Upload Integration Test Coverage
+        uses: actions/upload-artifact@v6
+        if: github.actor != 'dependabot[bot]' && always()
+        with:
+          name: integration-test-coverage
+          path: apps/web/coverage/
+          retention-days: 30

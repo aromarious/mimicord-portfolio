@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_discord_messages_cleaned
+    description: "ステージングモデルから取得したメッセージに対して、URLリンクの除去やテキストの正規化などのクリーニング処理を施したモデルです。URLの置換、メンションの削除、および「w」などの笑い文字の正規化を行います。"
+    config:
+      meta:
+        display_name: "メッセージクリーニング"
+    columns:
+      - name: message_id
+        description: "メッセージID"
+      - name: message_timestamp
+        description: "投稿日時"
+      - name: message_content
+        description: "加工前のメッセージ本文"
+      - name: channel_id
+        description: "チャンネルID"
+      - name: cleaned_content
+        description: "クリーニング（URL置換、メンション削除、笑い正規化）後のメッセージ本文"
+      - name: source_file
+        description: "元データのファイル名"
+      - name: attachments
+        description: "添付ファイル情報"

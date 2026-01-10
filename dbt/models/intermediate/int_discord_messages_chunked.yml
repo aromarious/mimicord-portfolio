@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: int_discord_messages_chunked
+    description: "クリーニング済みメッセージを時系列で連続するチャンクに分割したモデルです。一定時間内に連続して投稿されたメッセージをグループ化します。"
+    config:
+      meta:
+        display_name: "メッセージチャンク"
+    columns:
+      - name: chunk_id
+        description: "生成されたチャンクの一連番号"
+      - name: start_at
+        description: "チャンク内の最初のメッセージの時間"
+      - name: end_at
+        description: "チャンク内の最後のメッセージの時間"
+      - name: message_count
+        description: "チャンクに含まれるメッセージの総数"
+      - name: combined_content
+        description: "チャンク内のメッセージを改行で連結したテキスト"

@@ -1,0 +1,66 @@
+{
+  "markdownlint.config": {
+    "MD022": false,
+    "MD032": false,
+    "MD033": false,
+    "MD025": false,
+    "MD028": false
+  },
+  "css.lint.unknownAtRules": "ignore",
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "development",
+      "database": "webapp",
+      "username": "postgres",
+      "password": "postgres"
+    },
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5433,
+      "driver": "PostgreSQL",
+      "name": "staging",
+      "database": "webapp_test",
+      "username": "postgres",
+      "password": "postgres"
+    },
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": true,
+          "pfx": ""
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "ep-empty-waterfall-a1fxxmnn-pooler.ap-southeast-1.aws.neon.tech",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "production",
+      "database": "neondb",
+      "username": "neondb_owner",
+      "password": "npg_U2WAs7gYyknc"
+    }
+  ],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports.biome": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "workbench.colorTheme": "D2 Dark"
+}

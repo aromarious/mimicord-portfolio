@@ -1,0 +1,30 @@
+name: 'mimicord_brain'
+version: '1.0.0'
+profile: 'mimicord_brain'
+
+flags:
+  send_anonymous_usage_stats: False
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  mimicord_brain:
+    +materialized: view      # デフォルト
+    staging:
+      +materialized: table   # models/staging フォルダ用
+    intermediate:
+      +materialized: view    # models/intermediate フォルダ用
+
+vars:
+  sample_n: 1000
+  chunk_gap_seconds: 600
+

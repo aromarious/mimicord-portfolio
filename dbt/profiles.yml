@@ -1,0 +1,10 @@
+mimicord_brain:
+  target: motherduck
+  outputs:
+    motherduck:
+      type: duckdb
+      path: 'md:mimicord-pipeline'
+      # 環境変数からトークンを取得する
+      token: "{{ env_var('MOTHERDUCK_TOKEN') }}"
+      schema: main
+      threads: 4

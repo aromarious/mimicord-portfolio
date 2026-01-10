@@ -1,0 +1,51 @@
+name: Deploy DB (Production)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/db/**'
+      - '.github/workflows/deploy-db.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.11.0'
+
+jobs:
+  migrate:
+    name: Run Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        # Only install dependencies needed for migration (root and db package) to save time
+        run: pnpm install --frozen-lockfile --filter=@packages/db...
+
+      - name: Install Infisical CLI
+        run: |
+          curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+          sudo apt-get update && sudo apt-get install -y infisical
+
+      - name: Run DB Migrations
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_SECRET }}
+        run: |
+          cd packages/db
+          # Using "prod" environment as confirmed
+          # Using db:push instead of db:migrate for initial schema creation
+          infisical run --projectId=082d5863-19f4-49d4-88fc-429990db8d3e --env=prod -- pnpm db:push

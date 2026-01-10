@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_discord_messages
+    description: "Discordのメッセージ情報を取得するステージングモデルです。JSONソースから必要なフィールドを抽出します。"
+    config:
+      meta:
+        display_name: "Discordメッセージ（ステージング）"
+    columns:
+      - name: message_id
+        description: "メッセージ固有のID"
+      - name: message_timestamp
+        description: "メッセージの投稿日時"
+      - name: message_content
+        description: "メッセージの本文"
+      - name: channel_id
+        description: "投稿されたチャンネルのID（ファイル名から抽出）"
+      - name: attachments
+        description: "添付ファイル情報のJSON形式データ"
+      - name: source_file
+        description: "元データのファイル名"

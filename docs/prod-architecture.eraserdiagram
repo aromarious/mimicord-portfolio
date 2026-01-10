@@ -1,0 +1,65 @@
+title Mimicord システムアーキテクチャ
+
+// ユーザー & クライアント
+ユーザーとクライアント [icon: users, color: green] {
+  User [icon: user]
+  Browser [icon: monitor, label: "React 19"]
+}
+
+// 外部サービス (SaaS)
+OpenAI API [icon: openai, color: blue] {
+  Embeddings API [icon: code, label: "Embeddings"]
+  LLM API [icon: message-circle, label: "LLM"]
+}
+GitHub [icon: github, color: blue] {
+  OAuth Provider [icon: shield, label: "OAuth"]
+}
+Infisical [icon: lock]
+Discord [icon: discord]
+
+// Vercel エコシステム (ホスティング)
+Vercel エコシステム [icon: vercel, color: blue] {
+  Vercel Edge Network [icon: vercel]
+  Next.js Frontend [icon: react, label: "Next.js 16"]
+  Hono Backend API [icon: nodejs, label: "Hono API"]
+  Vercel Logs [icon: file-text]
+}
+
+// データ & ストレージ
+データとストレージ [icon: database, color: blue] {
+  Neon [icon: postgres, label: "Neon (PostgreSQL)"] {
+    pgvector [icon: database, label: "pgvector"]
+  }
+  Upstash Redis [icon: redis]
+}
+
+// データパイプライン (mimicord-brain / Scripts)
+データパイプライン [icon: package, color: blue] {
+  dbt [icon: dbt]
+  MotherDuck [icon: duckdb, label: "MotherDuck (DuckDB)"]
+  Ingest Script [icon: code]
+}
+
+// Connections: ユーザーインタラクションフロー
+Browser > Vercel Edge Network: 検索クエリ
+Vercel Edge Network > Next.js Frontend
+
+// 認証フロー
+Next.js Frontend <> OAuth Provider: OAuth redirect/callback
+Hono Backend API > Neon: セッション保存
+
+// RAG検索 & 要約フロー
+User > Browser: 検索クエリ
+Next.js Frontend > Hono Backend API: RPC呼出
+Hono Backend API > Upstash Redis: レート制限
+Hono Backend API > Embeddings API: クエリのベクトル化
+Neon < Hono Backend API: 類似メッセージ検索
+Vercel エコシステム < Infisical: 環境変数Sync [color: Black]
+
+// Data Processing Flow
+Discord > MotherDuck: Data Request & Import
+Ingest Script > MotherDuck: Fetch chunks
+Ingest Script > Embeddings API: Generate embeddings
+Neon < Ingest Script: Store vectors
+Hono Backend API > LLM API: 検索結果要約
+

@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: discord
+    description: "DiscordからエクスポートされたJSONデータ"
+    tables:
+      - name: channels
+        description: "チャンネル情報 (channel.json)"
+        config:
+          meta:
+            display_name: "チャンネル情報（ソース）"
+        meta:
+          external_location: "read_json_auto('discord_package/メッセージ/*/channel.json', filename=true)"
+      - name: messages
+        description: "メッセージ情報 (messages.json)"
+        config:
+          meta:
+            display_name: "メッセージ情報（ソース）"
+        meta:
+          external_location: "read_json_auto('discord_package/メッセージ/*/messages.json', filename=true)"
