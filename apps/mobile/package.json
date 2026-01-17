@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.4.9",
+    "@better-auth/expo": "^1.4.13",
     "better-auth": "^1.4.9",
     "expo": "~54.0.31",
     "expo-constants": "^18.0.12",
